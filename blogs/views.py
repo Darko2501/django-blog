@@ -63,6 +63,39 @@ def add_comment(request,pk):
         serializer.save()
         return Response({"message":"You add comment to this blog"},status=status.HTTP_201_CREATED)
     return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_camments(request,pk):
+    try: 
+        blog=Blog.objects.get(pk=pk)
+       
+    except Blog.DoesNotExist:
+        return Response({'message':"Blog is not found"},status=status.HTTP_404_NOT_FOUND)
+    comments=Comments.objects.filter(blog=blog)
     
-
-
+    serializer=CommentsSerializer(comments,many=True)
+    return Response({"Comments:":serializer.data},status=status.HTTP_200_OK)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_comment( request,pk):
+    try:
+      comment=Comments.objects.get(user=request.user,pk=pk)
+      comment.delete()
+      return Response({'message':'Your blog is deleted'},status=status.HTTP_204_NO_CONTENT)
+    except Comments.DoesNotExist:
+        return Response({"message":"Comment does not exist"},status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def single_comment(request,pk):
+    try:
+        comment=Comments.objects.get(pk=pk)
+        serializer=CommentsSerializer(comment)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    except Comments.DoesNotExist:
+        return Response({"message":"This comment is not exist"},status=status.HTTP_404_NOT_FOUND)
+    
+        
+      
+    
+    
+    
