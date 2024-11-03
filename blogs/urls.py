@@ -10,4 +10,7 @@ urlpatterns=[
     path('comments/<int:pk>/', views.get_camments, name='get_comments'),
     path('comment/delete/<int:pk>/', views.delete_comment, name='delete_comment'),
     path('comment/<int:pk>/', views.single_comment, name='single_comment'),
+    path('comments/<int:pk>/replies/', views.get_replys, name='get_replies'),
+    path('comments/<int:pk>/replies/post/', views.post_reply, name='post_reply'), 
+    path('replies/<int:pk>/delete/', views.delete_reply, name='delete_reply'),    
 ]

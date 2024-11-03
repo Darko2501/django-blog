@@ -24,7 +24,7 @@ class ReplySerializer(serializers.ModelSerializer):
     comment=serializers.PrimaryKeyRelatedField(queryset=Comments.objects.all())
     class Meta:
         model=Reply
-        fields=['id','user','comment','parent']
+        fields=['id','user','reply','comment','parent']
         
     
         

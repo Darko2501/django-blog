@@ -93,9 +93,58 @@ def single_comment(request,pk):
         return Response(serializer.data,status=status.HTTP_200_OK)
     except Comments.DoesNotExist:
         return Response({"message":"This comment is not exist"},status=status.HTTP_404_NOT_FOUND)
-    
-        
-      
-    
-    
-    
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_replys(request,pk):
+    try:
+        comment=Comments.objects.get(pk=pk)
+        reply=Reply.objects.filter(comment=comment)
+        serializer=ReplySerializer(reply,many=True)
+        return Response(serializer.data,status=status.HTTP_200_OK)
+    except Comments.DoesNotExist:
+        return Response({"message":"Comment does not exist"},status=status.HTTP_404_NOT_FOUND)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def post_reply(request, pk):
+    try:
+        comment = Comments.objects.get(pk=pk)
+        if 'parent' not in request.data:
+            reply_data = {
+                'user': request.user.id,
+                'reply': request.data.get('reply'),
+                'comment': pk,
+            }
+        else:
+            parent_id = request.data['parent']
+            try:
+                parent_reply = Reply.objects.get(pk=parent_id)
+                reply_data = {
+                    'user': request.user.id,
+                    'reply': request.data.get('reply'),
+                    'comment': pk,
+                    'parent': parent_id,  
+                }
+            except Reply.DoesNotExist:
+                return Response({"message": "Parent reply does not exist."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ReplySerializer(data=reply_data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"reply": serializer.data}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({"message": "Enter valid data"}, status=status.HTTP_400_BAD_REQUEST)
+
+    except Comments.DoesNotExist:
+        return Response({"message": "Comment does not exist"}, status=status.HTTP_404_NOT_FOUND)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_reply(request, pk):
+    try:
+        reply = Reply.objects.get(pk=pk)
+        if reply.user != request.user:
+            return Response({"message": "You do not have permission to delete this reply."}, status=status.HTTP_403_FORBIDDEN)
+        reply.delete()
+        return Response({"message": "Reply deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+    except Reply.DoesNotExist:
+        return Response({"message": "Reply does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
